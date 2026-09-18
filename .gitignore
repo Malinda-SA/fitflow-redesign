@@ -1,4 +1,4 @@
-﻿# Node
+# Node
 node_modules/
 dist/
 
@@ -19,3 +19,8 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Secrets
+*.key
+*.pem
+.env.*

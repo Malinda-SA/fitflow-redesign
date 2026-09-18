@@ -49,7 +49,7 @@ fitflow-redesign/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/fitflow-redesign.git
+git clone https://github.com/MalindaGamage/fitflow-redesign.git
 cd fitflow-redesign
 
 # Frontend
@@ -64,11 +64,11 @@ cd ai-service && pip install -r requirements.txt && uvicorn main:app --reload
 
 ## Branch Strategy
 
-| Branch   | Purpose                                   |
-|----------|-------------------------------------------|
-| `main`   | Production-ready code (protected)         |
-| `develop`| Integration branch for feature work       |
-| `feature/*` | Individual feature branches            |
+| Branch      | Purpose                                   |
+|-------------|-------------------------------------------|
+| `main`      | Production-ready code (protected)         |
+| `develop`   | Integration branch for feature work       |
+| `feature/*` | Individual feature branches               |
 
 > **Branch protection** is enabled on `main`: pull-request reviews are required before merging.
 

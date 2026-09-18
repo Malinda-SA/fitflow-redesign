@@ -21,9 +21,9 @@ graph TB
     end
 
     subgraph Data["Data Layer"]
-        PostgreSQL["PostgreSQL<br/>Users, Health Metrics,<br/>Workout Plans"]
-        MongoDB["MongoDB<br/>Activity Feed,<br/>Social Posts, Logs"]
-        Redis["Redis<br/>Cache, Sessions,<br/>Pub/Sub"]
+        PostgreSQL[("PostgreSQL<br/>Users · Health Metrics<br/>Workout Plans · Nutrition")]
+        MongoDB[("MongoDB<br/>Activity Feed<br/>Social Posts · Logs")]
+        Redis[("Redis<br/>Cache · Sessions<br/>Pub/Sub")]
     end
 
     subgraph External["External Integrations"]
@@ -31,42 +31,83 @@ graph TB
         GoogleFit["Google Fit"]
     end
 
-    Flutter -- "Login / Signup" --> Auth0
-    Auth0 -- "JWT Token" --> Flutter
-    Flutter -- "REST API Calls<br/>(Bearer Token)" --> NestJS
-    Flutter -- "WebSocket<br/>(Real-time Updates)" --> NestJS
+    Flutter -- "1. Login / Signup" --> Auth0
+    Auth0 -- "2. JWT Token" --> Flutter
+    Flutter -- "3. REST API (Bearer Token)" --> NestJS
+    Flutter -- "4. WebSocket (Real-time)" --> NestJS
     Flutter -. "Native Bridge" .-> HealthKit
     Flutter -. "Native Bridge" .-> GoogleFit
 
     NestJS -- "Validate JWT" --> Auth0
-    NestJS -- "CRUD Operations" --> PostgreSQL
+    NestJS -- "CRUD Health Data" --> PostgreSQL
     NestJS -- "Feed & Social Queries" --> MongoDB
     NestJS -- "Cache / Pub-Sub" --> Redis
-    NestJS -- "Internal REST/gRPC<br/>AI Requests" --> FastAPI
+    NestJS -- "Internal gRPC / REST" --> FastAPI
 
     FastAPI -- "Read Training Data" --> PostgreSQL
     FastAPI -- "Cache Predictions" --> Redis
 ```
 
-## Data Flow Summary
+---
 
-### Workout Data Flow
-1. User logs a workout in the Flutter app.
-2. Flutter sends the data to NestJS via REST API (authenticated with JWT).
-3. NestJS validates the token with Auth0 and stores the workout in PostgreSQL.
-4. NestJS publishes an event to Redis for real-time subscribers.
-5. NestJS forwards the workout data to FastAPI for recommendation updates.
+## Data Flow Details
 
-### Social / Activity Feed Flow
-1. User creates a social post or achieves a milestone.
-2. Flutter sends the post to NestJS.
-3. NestJS stores the post in MongoDB (flexible schema for varied content types).
-4. NestJS publishes a real-time notification via Redis Pub/Sub.
-5. Connected clients receive the update through WebSocket.
+### 1. Workout Data Flow
 
-### Nutrition Data Flow
-1. User logs a meal in the Flutter app.
-2. Flutter sends nutrition data to NestJS.
-3. NestJS stores the entry in PostgreSQL (relational links to user profile).
-4. NestJS requests a personalized meal suggestion from FastAPI.
-5. FastAPI runs the ML model and returns recommendations via internal API.
+```
+User logs workout
+    → Flutter (REST POST /workouts)
+    → NestJS validates JWT with Auth0
+    → NestJS stores in PostgreSQL (workouts table)
+    → NestJS publishes event to Redis Pub/Sub
+    → NestJS calls FastAPI for recommendation update
+    → FastAPI returns personalized plan
+    → NestJS pushes update via WebSocket to Flutter
+```
+
+### 2. Social / Activity Feed Flow
+
+```
+User creates post or achieves milestone
+    → Flutter (REST POST /feed)
+    → NestJS stores document in MongoDB (flexible schema)
+    → NestJS publishes notification to Redis Pub/Sub
+    → Connected followers receive update via WebSocket
+```
+
+### 3. Nutrition Data Flow
+
+```
+User logs a meal
+    → Flutter (REST POST /nutrition)
+    → NestJS stores entry in PostgreSQL (nutrition_logs table)
+    → NestJS calls FastAPI (POST /recommend/meal)
+    → FastAPI runs ML model (reads user history from PostgreSQL)
+    → FastAPI caches result in Redis (TTL: 1 hour)
+    → FastAPI returns personalised meal suggestions
+    → NestJS returns suggestions to Flutter
+```
+
+---
+
+## Component Responsibilities
+
+| Component | Responsibility |
+|-----------|----------------|
+| Flutter | Cross-platform UI, sensor data access, real-time updates |
+| Auth0 | Identity management, JWT issuance, MFA |
+| NestJS | Business logic, REST API, WebSocket gateway, orchestration |
+| FastAPI | ML inference, recommendation engine, model serving |
+| PostgreSQL | Transactional health data, user profiles, compliance store |
+| MongoDB | Activity feed, social content, flexible schema events |
+| Redis | Session cache, real-time pub/sub, short-lived caches |
+
+---
+
+## Security Architecture
+
+- All client-to-server communication is over HTTPS / WSS (TLS 1.3).
+- JWTs are short-lived (15 min) with refresh tokens (7 days, rotated).
+- PostgreSQL uses Row-Level Security (RLS) to enforce per-user data isolation.
+- Secrets are stored in environment variables (never in source control).
+- Auth0 provides audit logs for HIPAA/GDPR compliance evidence.
