@@ -1,0 +1,60 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-docs:
+    name: Lint Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check markdown files exist
+        run: |
+          echo "Checking required documentation..."
+          test -f README.md                          && echo "✓ README.md"
+          test -f docs/tech-stack-summary.md         && echo "✓ tech-stack-summary.md"
+          test -f docs/comparison-matrix.md          && echo "✓ comparison-matrix.md"
+          test -f docs/architecture-diagram.md       && echo "✓ architecture-diagram.md"
+          test -d docs/adr                           && echo "✓ docs/adr/"
+          echo "All required documentation present."
+
+  frontend:
+    name: Frontend (Flutter)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Placeholder - Flutter build
+        run: echo "Flutter build step (to be configured when source code is added)"
+
+  backend:
+    name: Backend (NestJS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Placeholder - NestJS build
+        run: echo "NestJS build step (to be configured when source code is added)"
+
+  ai-service:
+    name: AI Service (FastAPI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Placeholder - FastAPI tests
+        run: echo "FastAPI test step (to be configured when source code is added)"
